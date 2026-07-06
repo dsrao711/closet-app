@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useStore, deleteItem } from '../data/store';
+import GarmentThumbnail from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
 
-const CATEGORIES = [
+const CATS = [
   { key: 'all', label: 'All' },
   { key: 'top', label: 'Tops' },
   { key: 'bottom', label: 'Trousers' },
@@ -19,26 +18,24 @@ const CATEGORIES = [
 
 function ItemCard({ item, onDelete }) {
   return (
-    <View style={styles.itemCard}>
-      <View style={[
-        styles.colorBlock,
-        { backgroundColor: item.color },
-        (item.color === '#FFFFFF' || item.color === '#F5F5DC') && styles.colorBlockBorder,
-      ]} />
-      <Text style={styles.itemLabel} numberOfLines={2}>{item.label}</Text>
-      <Text style={styles.itemOccasion}>{item.occasion}</Text>
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => {
-          Alert.alert('Remove item', `Delete "${item.label}"?`, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) },
-          ]);
-        }}
-      >
-        <Text style={styles.deleteTxt}>✕</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={s.itemCard}
+      onLongPress={() =>
+        Alert.alert('Remove item', `Delete "${item.label}"?`, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) },
+        ])
+      }
+      activeOpacity={0.88}
+    >
+      <View style={s.thumbWrap}>
+        <GarmentThumbnail item={item} size={160} round={false} />
+      </View>
+      <View style={s.itemInfo}>
+        <Text style={s.itemLabel} numberOfLines={2}>{item.label}</Text>
+        <Text style={s.itemOccasion}>{item.occasion.toUpperCase()}</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -50,59 +47,51 @@ export default function WardrobeScreen({ navigation }) {
     ? items
     : items.filter(i => i.category === selectedCat);
 
+  const visibleCats = CATS.filter(c =>
+    c.key === 'all' || items.some(i => i.category === c.key)
+  );
+
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.heading}>Wardrobe</Text>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('Add')}
-        >
-          <Text style={styles.addBtnText}>＋ Add</Text>
+      <View style={s.header}>
+        <View>
+          <Text style={s.heading}>Wardrobe</Text>
+          <Text style={s.subMono}>{items.length} PIECES</Text>
+        </View>
+        <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('Add')}>
+          <Text style={s.addBtnText}>＋ Add</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Category tabs */}
+      {/* Category filter */}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterBar}
-        contentContainerStyle={styles.filterContent}
+        horizontal showsHorizontalScrollIndicator={false}
+        style={s.filterBar} contentContainerStyle={s.filterContent}
       >
-        {CATEGORIES.map(cat => {
-          const count = cat.key === 'all'
-            ? items.length
-            : items.filter(i => i.category === cat.key).length;
-          if (count === 0 && cat.key !== 'all') return null;
+        {visibleCats.map(cat => {
           const active = selectedCat === cat.key;
           return (
             <TouchableOpacity
               key={cat.key}
-              style={[styles.chip, active && styles.chipActive]}
+              style={[s.chip, active && s.chipActive]}
               onPress={() => setSelectedCat(cat.key)}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                {cat.label}{count > 0 ? ` (${count})` : ''}
-              </Text>
+              <Text style={[s.chipText, active && s.chipTextActive]}>{cat.label}</Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
       {/* Grid */}
-      <ScrollView
-        style={styles.grid}
-        contentContainerStyle={styles.gridContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={s.grid} contentContainerStyle={s.gridContent} showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Nothing here yet</Text>
-            <Text style={styles.emptyHint}>Tap + Add to grow your wardrobe.</Text>
+          <View style={s.empty}>
+            <Text style={s.emptyTitle}>Nothing here yet</Text>
+            <Text style={s.emptyHint}>Long-press any item to remove it.</Text>
           </View>
         ) : (
-          <View style={styles.gridRow}>
+          <View style={s.gridRow}>
             {filtered.map(item => (
               <ItemCard key={item.id} item={item} onDelete={deleteItem} />
             ))}
@@ -113,47 +102,55 @@ export default function WardrobeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: {
-    flexDirection: 'row', alignItems: 'flex-end',
+    flexDirection: 'row', alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 16,
   },
-  heading: { ...fonts.heading },
-  addBtn: {
-    backgroundColor: colors.black, paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: layout.chipRadius,
+  heading: {
+    fontFamily: fonts.sans800, fontSize: 33,
+    letterSpacing: -1, color: colors.ink, lineHeight: 34,
   },
-  addBtnText: { color: colors.white, fontSize: 14, fontWeight: '600' },
+  subMono: {
+    fontFamily: fonts.mono, fontSize: 11,
+    letterSpacing: 0.9, color: colors.inkFaint, marginTop: 8,
+  },
+  addBtn: {
+    backgroundColor: colors.ink, borderRadius: 999,
+    paddingHorizontal: 18, paddingVertical: 10, marginTop: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+  },
+  addBtnText: { fontFamily: fonts.sans700, fontSize: 13.5, color: colors.white },
   filterBar: { maxHeight: 52 },
   filterContent: { paddingHorizontal: layout.px, gap: 8 },
   chip: {
-    backgroundColor: colors.chipOutlineBg, paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: layout.chipRadius,
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.lineStrong,
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  chipActive: { backgroundColor: colors.black },
-  chipText: { fontSize: 14, color: colors.chipOutlineText, fontWeight: '500' },
-  chipTextActive: { color: colors.white, fontWeight: '600' },
+  chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+  chipText: { fontFamily: fonts.sans600, fontSize: 13, color: colors.inkSoft },
+  chipTextActive: { color: colors.white },
   grid: { flex: 1 },
-  gridContent: { padding: layout.px, paddingTop: 16, paddingBottom: 100 },
-  gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  itemCard: {
-    width: '47%', backgroundColor: colors.cardBg,
-    borderRadius: layout.cardRadius, padding: 14,
-    ...layout.cardShadow, position: 'relative',
+  gridContent: { padding: layout.px, paddingTop: 16, paddingBottom: 110 },
+  gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  itemCard: { width: '47%' },
+  thumbWrap: {
+    width: '100%', aspectRatio: 1,
+    borderRadius: 14, overflow: 'hidden',
+    backgroundColor: colors.garmentBg,
   },
-  colorBlock: { width: '100%', height: 80, borderRadius: 10, marginBottom: 12 },
-  colorBlockBorder: { borderWidth: 1, borderColor: colors.border },
-  itemLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },
-  itemOccasion: { fontSize: 12, color: colors.textSecondary },
-  deleteBtn: {
-    position: 'absolute', top: 8, right: 8,
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.08)', alignItems: 'center', justifyContent: 'center',
+  itemInfo: { marginTop: 9 },
+  itemLabel: {
+    fontFamily: fonts.sans600, fontSize: 14,
+    letterSpacing: -0.1, color: colors.ink,
   },
-  deleteTxt: { fontSize: 11, color: colors.textSecondary },
-  emptyState: { paddingTop: 80, alignItems: 'center' },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
-  emptyHint: { fontSize: 14, color: colors.textSecondary },
+  itemOccasion: {
+    fontFamily: fonts.mono, fontSize: 9.5,
+    letterSpacing: 0.6, color: colors.inkGhost, marginTop: 3,
+  },
+  empty: { paddingTop: 80, alignItems: 'center' },
+  emptyTitle: { fontFamily: fonts.sans700, fontSize: 17, color: colors.inkFaint },
+  emptyHint: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkGhost, marginTop: 6 },
 });

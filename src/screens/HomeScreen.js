@@ -1,215 +1,191 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useStore } from '../data/store';
+import { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
 
-const CATEGORY_LABELS = {
-  top: 'Tops', bottom: 'Trousers', skirt: 'Skirts',
-  dress: 'Dresses', shoes: 'Footwear', bag: 'Bags',
-  accessory: 'Accessories', outerwear: 'Outerwear',
-};
+const STAT_CATS = [
+  { key: 'top',       label: 'TOPS' },
+  { key: 'bottom',    label: 'TROUSERS' },
+  { key: 'skirt',     label: 'SKIRTS' },
+  { key: 'dress',     label: 'DRESSES' },
+  { key: 'shoes',     label: 'FOOTWEAR' },
+  { key: 'bag',       label: 'BAGS' },
+  { key: 'accessory', label: 'ACCESSORIES' },
+  { key: 'outerwear', label: 'OUTERWEAR' },
+];
 
-function StatCard({ count, label }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statNumber}>{count}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function ColorDot({ color, size = 28 }) {
-  return (
-    <View style={[
-      styles.colorDot,
-      { width: size, height: size, borderRadius: size / 2, backgroundColor: color },
-      (color === '#FFFFFF' || color === '#F5F5DC') && styles.colorDotBorder,
-    ]} />
-  );
-}
-
-function OutfitRow({ outfit, items }) {
-  if (!outfit) return null;
-  const outfitItems = outfit.itemIds
-    .map(id => items.find(i => i.id === id))
-    .filter(Boolean);
-
-  return (
-    <View style={styles.outfitRow}>
-      <View style={styles.outfitDots}>
-        {outfitItems.map(item => (
-          <ColorDot key={item.id} color={item.color} size={32} />
-        ))}
-      </View>
-      <View style={styles.outfitInfo}>
-        <Text style={styles.outfitName}>{outfit.name}</Text>
-        <Text style={styles.outfitMeta}>
-          {outfitItems.map(i => i.label).join(' + ')}
-        </Text>
-      </View>
-      <View style={[styles.vibeChip]}>
-        <Text style={styles.vibeChipText}>{outfit.vibe}</Text>
-      </View>
-    </View>
-  );
-}
+const DAYS_LONG = { Sun: 'SUN', Mon: 'MON', Tue: 'TUE', Wed: 'WED', Thu: 'THU', Fri: 'FRI', Sat: 'SAT' };
+const DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function HomeScreen({ navigation }) {
-  const { items, outfits, todayOutfit } = useStore();
+  const { items, outfits, weeklyPlan, todayOutfit } = useStore();
 
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const todayName = days[new Date().getDay()];
+  const todayKey = DAY_MAP[new Date().getDay()];
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
 
-  // Count by category
   const counts = {};
-  items.forEach(i => {
-    counts[i.category] = (counts[i.category] || 0) + 1;
-  });
+  items.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
+  const statCats = STAT_CATS.filter(c => counts[c.key] > 0);
 
-  const statEntries = Object.entries(CATEGORY_LABELS)
-    .map(([cat, label]) => ({ label, count: counts[cat] || 0 }))
-    .filter(s => s.count > 0);
-
-  // Recent outfits for "wear this today" section
-  const wearToday = todayOutfit
-    ? [todayOutfit]
-    : outfits.slice(0, 3);
+  const displayOutfits = todayOutfit ? [todayOutfit] : outfits.slice(0, 2);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.heading}>Divya's Closet</Text>
-        <Text style={styles.subheading}>
-          {items.length} items · {outfits.length} outfits
-        </Text>
+      <View style={s.header}>
+        <Text style={s.greeting}>Good morning, Divya</Text>
+        <Text style={s.heading}>Divya's{'\n'}Closet</Text>
+        <Text style={s.subMono}>{items.length} ITEMS · {outfits.length} OUTFITS</Text>
       </View>
 
       {/* Stats grid */}
-      {statEntries.length > 0 && (
-        <View style={styles.statsCard}>
-          <View style={styles.statsGrid}>
-            {statEntries.map(s => (
-              <StatCard key={s.label} count={s.count} label={s.label} />
-            ))}
-          </View>
+      {statCats.length > 0 && (
+        <View style={s.statsGrid}>
+          {statCats.map(c => (
+            <View key={c.key} style={s.statCard}>
+              <Text style={s.statNum}>{counts[c.key]}</Text>
+              <Text style={s.statLabel}>{c.label}</Text>
+            </View>
+          ))}
         </View>
       )}
 
-      {items.length === 0 && (
-        <View style={styles.emptyStats}>
-          <Text style={styles.emptyText}>Your closet is empty.</Text>
-          <Text style={styles.emptyHint}>Tap + to add your first item.</Text>
-        </View>
-      )}
-
-      {/* Wear this today */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {todayOutfit ? `Wearing today · ${todayName}` : 'Wear this today'}
-          </Text>
-          {outfits.length > 0 && (
-            <TouchableOpacity onPress={() => navigation.navigate('Outfits')}>
-              <Text style={styles.seeAll}>See all</Text>
-            </TouchableOpacity>
-          )}
+      {/* Today's outfit */}
+      <View style={s.section}>
+        <View style={s.sectionRow}>
+          <Text style={s.sectionTitle}>Today's outfit</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Planner')}>
+            <Text style={s.sectionMeta}>{DAYS_LONG[todayKey]} · {dateStr.split(',')[1]?.trim()} →</Text>
+          </TouchableOpacity>
         </View>
 
-        {wearToday.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyCardText}>No outfits yet.</Text>
-            <Text style={styles.emptyCardHint}>Create one with the + button.</Text>
+        {displayOutfits.length === 0 ? (
+          <View style={s.emptyCard}>
+            <Text style={s.emptyTitle}>Nothing planned yet</Text>
+            <Text style={s.emptyHint}>Use the Planner to set up your week.</Text>
           </View>
         ) : (
-          wearToday.map(outfit => (
-            <View key={outfit.id} style={styles.outfitCard}>
-              <OutfitRow outfit={outfit} items={items} />
-            </View>
-          ))
+          displayOutfits.map(outfit => {
+            const outfitItems = outfit.itemIds.map(id => items.find(i => i.id === id)).filter(Boolean);
+            return (
+              <View key={outfit.id} style={s.outfitCard}>
+                <Text style={s.outfitVibeMono}>{outfit.vibe.toUpperCase()}</Text>
+                <Text style={s.outfitName}>{outfit.name}</Text>
+                <View style={{ marginTop: 16 }}>
+                  <ThumbnailRow itemIds={outfit.itemIds} items={items} size={56} overlap={14} />
+                </View>
+                <Text style={s.outfitItems}>{outfitItems.map(i => i.label).join(' · ')}</Text>
+              </View>
+            );
+          })
         )}
       </View>
 
       {/* Quick actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick actions</Text>
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Add')}
-          >
-            <Text style={styles.actionIcon}>＋</Text>
-            <Text style={styles.actionLabel}>Add item</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Planner')}
-          >
-            <Text style={styles.actionIcon}>📅</Text>
-            <Text style={styles.actionLabel}>Plan week</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Wardrobe')}
-          >
-            <Text style={styles.actionIcon}>👗</Text>
-            <Text style={styles.actionLabel}>Wardrobe</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={s.actionsRow}>
+        <TouchableOpacity style={[s.actionCard, s.actionCardDark]} onPress={() => navigation.navigate('Add')}>
+          <Text style={s.actionIcon}>＋</Text>
+          <Text style={[s.actionLabel, { color: colors.white }]}>Add item</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Planner')}>
+          <Text style={s.actionIcon}>📅</Text>
+          <Text style={s.actionLabel}>Plan week</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Wardrobe')}>
+          <Text style={s.actionIcon}>👗</Text>
+          <Text style={s.actionLabel}>Wardrobe</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { paddingBottom: 100 },
-  header: { paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 24 },
-  heading: { ...fonts.heading },
-  subheading: { ...fonts.subtitle, marginTop: 4 },
-  statsCard: {
-    marginHorizontal: layout.px, backgroundColor: colors.cardBg,
-    borderRadius: layout.cardRadius, padding: layout.cardPad,
-    ...layout.cardShadow, marginBottom: 24,
+  content: { paddingBottom: 110 },
+  header: { paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 20 },
+  greeting: {
+    fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.5,
+    textTransform: 'uppercase', color: colors.inkGhost, marginBottom: 6,
   },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  statCard: { width: '33.33%', paddingVertical: 10, paddingHorizontal: 4 },
-  statNumber: { fontSize: 22, fontWeight: '700', color: colors.textPrimary },
-  statLabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  emptyStats: { alignItems: 'center', paddingVertical: 32 },
-  emptyText: { fontSize: 17, color: colors.textSecondary, fontWeight: '600' },
-  emptyHint: { fontSize: 14, color: colors.textTertiary, marginTop: 6 },
-  section: { paddingHorizontal: layout.px, marginBottom: 28 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
-  seeAll: { fontSize: 14, color: colors.textSecondary },
+  heading: {
+    fontFamily: fonts.serif, fontSize: 52, lineHeight: 50,
+    color: colors.ink, letterSpacing: -0.5,
+  },
+  subMono: {
+    fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: 1,
+    color: colors.inkFaint, marginTop: 12,
+  },
+  statsGrid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    paddingHorizontal: layout.px, gap: 9, marginBottom: 28,
+  },
+  statCard: {
+    width: '31%', backgroundColor: colors.paper,
+    borderWidth: 1, borderColor: colors.paperBorder,
+    borderRadius: layout.statRadius, paddingVertical: 12, paddingHorizontal: 12,
+  },
+  statNum: {
+    fontFamily: fonts.sans800, fontSize: 24, letterSpacing: -0.5,
+    color: colors.ink,
+  },
+  statLabel: {
+    fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.6,
+    color: colors.inkGhost, marginTop: 2,
+  },
+  section: { paddingHorizontal: layout.px, marginBottom: 24 },
+  sectionRow: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'baseline', marginBottom: 12,
+  },
+  sectionTitle: {
+    fontFamily: fonts.sans800, fontSize: 18, letterSpacing: -0.4,
+    color: colors.ink,
+  },
+  sectionMeta: {
+    fontFamily: fonts.mono, fontSize: 10, letterSpacing: 0.8,
+    color: colors.ink,
+  },
   outfitCard: {
-    backgroundColor: colors.cardBg, borderRadius: layout.cardRadius,
-    padding: layout.cardPad, marginBottom: 10, ...layout.cardShadow,
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line,
+    borderRadius: 20, padding: 18,
+    ...layout.cardShadow, marginBottom: 10,
   },
-  outfitRow: { flexDirection: 'row', alignItems: 'center' },
-  outfitDots: { flexDirection: 'row', gap: 6, marginRight: 12 },
-  outfitInfo: { flex: 1 },
-  outfitName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-  outfitMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  vibeChip: {
-    backgroundColor: colors.black, paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 20,
+  outfitVibeMono: {
+    fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1,
+    color: colors.inkGhost,
   },
-  vibeChipText: { color: colors.white, fontSize: 11, fontWeight: '600' },
-  colorDot: {},
-  colorDotBorder: { borderWidth: 1, borderColor: colors.border },
+  outfitName: {
+    fontFamily: fonts.sans800, fontSize: 22, letterSpacing: -0.5,
+    color: colors.ink, marginTop: 5,
+  },
+  outfitItems: {
+    fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkFaint,
+    marginTop: 14, lineHeight: 18,
+  },
   emptyCard: {
-    backgroundColor: colors.cardBg, borderRadius: layout.cardRadius,
-    padding: 24, alignItems: 'center', ...layout.cardShadow,
+    borderWidth: 1, borderColor: colors.line, borderRadius: 20,
+    padding: 24, alignItems: 'center',
   },
-  emptyCardText: { fontSize: 15, color: colors.textSecondary, fontWeight: '600' },
-  emptyCardHint: { fontSize: 13, color: colors.textTertiary, marginTop: 6 },
-  actionRow: { flexDirection: 'row', gap: 12 },
+  emptyTitle: { fontFamily: fonts.sans700, fontSize: 16, color: colors.inkFaint },
+  emptyHint: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkGhost, marginTop: 6 },
+  actionsRow: {
+    flexDirection: 'row', paddingHorizontal: layout.px, gap: 9,
+  },
   actionCard: {
-    flex: 1, backgroundColor: colors.cardBg, borderRadius: layout.cardRadius,
-    paddingVertical: 20, alignItems: 'center', ...layout.cardShadow,
+    flex: 1, backgroundColor: colors.paper, borderWidth: 1,
+    borderColor: colors.paperBorder, borderRadius: layout.cardRadius,
+    paddingVertical: 15, paddingHorizontal: 12,
+    gap: 10,
   },
-  actionIcon: { fontSize: 24, marginBottom: 8 },
-  actionLabel: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
+  actionCardDark: {
+    backgroundColor: colors.ink, borderColor: colors.ink,
+  },
+  actionIcon: { fontSize: 20 },
+  actionLabel: {
+    fontFamily: fonts.sans700, fontSize: 13, letterSpacing: -0.1,
+    color: colors.ink,
+  },
 });

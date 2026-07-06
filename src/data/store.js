@@ -22,6 +22,7 @@ export function subscribe(fn) {
 export function getItems() { return items; }
 
 export function addItem(item) {
+  // item shape: { label, category, occasion, imageUri? }
   const newItem = { ...item, id: `item_${Date.now()}`, addedAt: Date.now() };
   items = [newItem, ...items];
   notify();
@@ -106,31 +107,24 @@ export function seedDemoData() {
   if (items.length > 0) return;
 
   const demoItems = [
-    { label: 'White linen shirt', category: 'top', color: '#FFFFFF', colorName: 'White', occasion: 'workwear' },
-    { label: 'Navy blazer', category: 'top', color: '#000080', colorName: 'Navy', occasion: 'workwear' },
-    { label: 'Black turtleneck', category: 'top', color: '#111111', colorName: 'Black', occasion: 'casual' },
-    { label: 'Blush silk blouse', category: 'top', color: '#FFB6C1', colorName: 'Blush', occasion: 'date night' },
-    { label: 'Olive green tee', category: 'top', color: '#6B7C3B', colorName: 'Olive', occasion: 'casual' },
-    { label: 'Black trousers', category: 'bottom', color: '#111111', colorName: 'Black', occasion: 'workwear' },
-    { label: 'Beige wide leg pants', category: 'bottom', color: '#F5F5DC', colorName: 'Beige', occasion: 'casual' },
-    { label: 'Blue denim jeans', category: 'bottom', color: '#4169E1', colorName: 'Blue', occasion: 'casual' },
-    { label: 'Plaid mini skirt', category: 'skirt', color: '#808080', colorName: 'Grey', occasion: 'casual' },
-    { label: 'Black midi skirt', category: 'skirt', color: '#111111', colorName: 'Black', occasion: 'workwear' },
-    { label: 'Black heels', category: 'shoes', color: '#111111', colorName: 'Black', occasion: 'workwear' },
-    { label: 'White sneakers', category: 'shoes', color: '#FFFFFF', colorName: 'White', occasion: 'casual' },
+    { label: 'Eyelet blouse, noir', category: 'top', occasion: 'date night' },
+    { label: 'Denim camp shirt', category: 'top', occasion: 'casual' },
+    { label: 'Gingham overshirt', category: 'top', occasion: 'casual' },
+    { label: 'Silk camisole', category: 'top', occasion: 'date night' },
+    { label: 'Wide-leg chino culottes', category: 'bottom', occasion: 'casual' },
+    { label: 'Charcoal wool trousers', category: 'bottom', occasion: 'workwear' },
+    { label: 'Plaid pleated skirt', category: 'skirt', occasion: 'workwear' },
+    { label: 'Dotted tulle midi skirt', category: 'skirt', occasion: 'party' },
+    { label: 'Tweed heart-button dress', category: 'dress', occasion: 'date night' },
+    { label: 'Leather loafers', category: 'shoes', occasion: 'workwear' },
+    { label: 'Burgundy slingback heels', category: 'shoes', occasion: 'date night' },
+    { label: 'Structured tote', category: 'bag', occasion: 'workwear' },
+    { label: 'Rose-print shoulder bag', category: 'bag', occasion: 'date night' },
   ];
 
   const addedItems = demoItems.map(item => addItem(item));
 
-  // Create a couple of demo outfits
-  addOutfit({
-    name: 'Office Monday',
-    vibe: 'workwear',
-    itemIds: [addedItems[0].id, addedItems[5].id, addedItems[10].id],
-  });
-  addOutfit({
-    name: 'Weekend Chill',
-    vibe: 'casual',
-    itemIds: [addedItems[4].id, addedItems[7].id, addedItems[11].id],
-  });
+  addOutfit({ name: 'Monday Boardroom', vibe: 'workwear', itemIds: [addedItems[0].id, addedItems[6].id, addedItems[9].id, addedItems[11].id] });
+  addOutfit({ name: 'Dinner Reservations', vibe: 'date night', itemIds: [addedItems[8].id, addedItems[10].id, addedItems[12].id] });
+  addOutfit({ name: 'Weekend Gingham', vibe: 'casual', itemIds: [addedItems[2].id, addedItems[6].id, addedItems[10].id] });
 }

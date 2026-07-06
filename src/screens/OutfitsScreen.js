@@ -1,58 +1,32 @@
 import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
-} from 'react-native';
-import { useStore } from '../data/store';
-import { deleteOutfit } from '../data/store';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useStore, deleteOutfit } from '../data/store';
+import { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
 
 const VIBES = ['All', 'workwear', 'casual', 'date night', 'party', 'vacation'];
-
-function ColorDot({ color, size = 28 }) {
-  return (
-    <View style={[
-      { width: size, height: size, borderRadius: size / 2, backgroundColor: color },
-      (color === '#FFFFFF' || color === '#F5F5DC') && { borderWidth: 1, borderColor: colors.border },
-    ]} />
-  );
-}
+const VIBE_DISPLAY = v => v.charAt(0).toUpperCase() + v.slice(1);
 
 function OutfitCard({ outfit, items, onDelete }) {
-  const outfitItems = outfit.itemIds
-    .map(id => items.find(i => i.id === id))
-    .filter(Boolean);
-
+  const outfitItems = outfit.itemIds.map(id => items.find(i => i.id === id)).filter(Boolean);
   return (
-    <View style={styles.card}>
-      {/* Color swatches */}
-      <View style={styles.swatches}>
-        {outfitItems.map(item => (
-          <ColorDot key={item.id} color={item.color} size={36} />
-        ))}
-      </View>
-
-      <View style={styles.cardBody}>
-        <View style={styles.cardTop}>
-          <Text style={styles.outfitName}>{outfit.name}</Text>
-          <View style={styles.vibeChip}>
-            <Text style={styles.vibeChipText}>{outfit.vibe}</Text>
-          </View>
+    <View style={s.card}>
+      <ThumbnailRow itemIds={outfit.itemIds} items={items} size={46} overlap={14} />
+      <View style={s.cardRow}>
+        <Text style={s.cardTitle}>{outfit.name}</Text>
+        <View style={s.vibeChip}>
+          <Text style={s.vibeChipText}>{outfit.vibe.toUpperCase()}</Text>
         </View>
-        <Text style={styles.itemsText}>
-          {outfitItems.map(i => i.label).join('  ·  ')}
-        </Text>
       </View>
-
+      <Text style={s.cardItems}>{outfitItems.map(i => i.label).join(' · ')}</Text>
       <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => {
-          Alert.alert('Remove outfit', `Delete "${outfit.name}"?`, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => onDelete(outfit.id) },
-          ]);
-        }}
+        style={s.deleteBtn}
+        onPress={() => Alert.alert('Remove outfit', `Delete "${outfit.name}"?`, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => onDelete(outfit.id) },
+        ])}
       >
-        <Text style={styles.deleteTxt}>✕</Text>
+        <Text style={s.deleteTxt}>✕</Text>
       </TouchableOpacity>
     </View>
   );
@@ -60,71 +34,48 @@ function OutfitCard({ outfit, items, onDelete }) {
 
 export default function OutfitsScreen({ navigation }) {
   const { items, outfits } = useStore();
-  const [selectedVibe, setSelectedVibe] = useState('All');
+  const [vibe, setVibe] = useState('All');
 
-  const filtered = selectedVibe === 'All'
-    ? outfits
-    : outfits.filter(o => o.vibe === selectedVibe);
+  const filtered = vibe === 'All' ? outfits : outfits.filter(o => o.vibe === vibe);
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.heading}>Outfits</Text>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('Add')}
-        >
-          <Text style={styles.addBtnText}>＋ Create</Text>
+      <View style={s.header}>
+        <View>
+          <Text style={s.heading}>Outfits</Text>
+          <Text style={s.subMono}>{outfits.length} OUTFITS</Text>
+        </View>
+        <TouchableOpacity style={s.createBtn} onPress={() => navigation.navigate('Add')}>
+          <Text style={s.createBtnText}>＋ Create</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Vibe filter chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterBar}
-        contentContainerStyle={styles.filterContent}
-      >
-        {VIBES.map(vibe => {
-          const active = selectedVibe === vibe;
+      {/* Filter chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        style={s.filterBar} contentContainerStyle={s.filterContent}>
+        {VIBES.map(v => {
+          const active = vibe === v;
           return (
-            <TouchableOpacity
-              key={vibe}
-              style={[styles.chip, active && styles.chipActive]}
-              onPress={() => setSelectedVibe(vibe)}
-            >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                {vibe.charAt(0).toUpperCase() + vibe.slice(1)}
-              </Text>
+            <TouchableOpacity key={v} style={[s.chip, active && s.chipActive]} onPress={() => setVibe(v)}>
+              <Text style={[s.chipText, active && s.chipTextActive]}>{VIBE_DISPLAY(v)}</Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
-      {/* Outfits list */}
-      <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      >
+      {/* List */}
+      <ScrollView style={s.list} contentContainerStyle={s.listContent} showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No outfits yet</Text>
-            <Text style={styles.emptyHint}>
-              {selectedVibe === 'All'
-                ? 'Tap + Create to build your first combination.'
-                : `No ${selectedVibe} outfits yet.`}
+          <View style={s.empty}>
+            <Text style={s.emptyTitle}>No outfits yet</Text>
+            <Text style={s.emptyHint}>
+              {vibe === 'All' ? 'Tap + Create to build your first combination.' : `No ${vibe} outfits yet.`}
             </Text>
           </View>
         ) : (
           filtered.map(outfit => (
-            <OutfitCard
-              key={outfit.id}
-              outfit={outfit}
-              items={items}
-              onDelete={deleteOutfit}
-            />
+            <OutfitCard key={outfit.id} outfit={outfit} items={items} onDelete={deleteOutfit} />
           ))
         )}
       </ScrollView>
@@ -132,51 +83,50 @@ export default function OutfitsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: {
-    flexDirection: 'row', alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between',
     paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 16,
   },
-  heading: { ...fonts.heading },
-  addBtn: {
-    backgroundColor: colors.black, paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: layout.chipRadius,
+  heading: { fontFamily: fonts.sans800, fontSize: 33, letterSpacing: -1, color: colors.ink, lineHeight: 34 },
+  subMono: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 0.9, color: colors.inkFaint, marginTop: 8 },
+  createBtn: {
+    backgroundColor: colors.ink, borderRadius: 999,
+    paddingHorizontal: 18, paddingVertical: 10, marginTop: 4,
   },
-  addBtnText: { color: colors.white, fontSize: 14, fontWeight: '600' },
+  createBtnText: { fontFamily: fonts.sans700, fontSize: 13.5, color: colors.white },
   filterBar: { maxHeight: 52 },
   filterContent: { paddingHorizontal: layout.px, gap: 8 },
   chip: {
-    backgroundColor: colors.chipOutlineBg, paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: layout.chipRadius,
+    backgroundColor: colors.bg, borderWidth: 1,
+    borderColor: colors.lineStrong, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  chipActive: { backgroundColor: colors.black },
-  chipText: { fontSize: 14, color: colors.chipOutlineText, fontWeight: '500' },
-  chipTextActive: { color: colors.white, fontWeight: '600' },
+  chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+  chipText: { fontFamily: fonts.sans600, fontSize: 13, color: colors.inkSoft },
+  chipTextActive: { color: colors.white },
   list: { flex: 1 },
-  listContent: { padding: layout.px, paddingTop: 16, paddingBottom: 100, gap: 12 },
+  listContent: { padding: layout.px, paddingTop: 16, paddingBottom: 110, gap: 14 },
   card: {
-    backgroundColor: colors.cardBg, borderRadius: layout.cardRadius,
-    padding: layout.cardPad, ...layout.cardShadow,
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line,
+    borderRadius: 18, padding: 16, position: 'relative',
+    ...layout.cardShadowSm,
   },
-  swatches: { flexDirection: 'row', gap: 8, marginBottom: 14 },
-  cardBody: { flex: 1 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  outfitName: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, flex: 1 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14 },
+  cardTitle: { fontFamily: fonts.sans800, fontSize: 18, letterSpacing: -0.4, color: colors.ink, flex: 1 },
   vibeChip: {
-    backgroundColor: colors.black, paddingHorizontal: 10, paddingVertical: 3,
-    borderRadius: 20, marginLeft: 8,
+    borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 3,
   },
-  vibeChipText: { color: colors.white, fontSize: 11, fontWeight: '600' },
-  itemsText: { fontSize: 13, color: colors.textSecondary, lineHeight: 20 },
+  vibeChipText: { fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6, color: colors.inkSoft },
+  cardItems: { fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkFaint, marginTop: 6, lineHeight: 18 },
   deleteBtn: {
     position: 'absolute', top: 12, right: 12,
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: colors.highlight, alignItems: 'center', justifyContent: 'center',
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center',
   },
-  deleteTxt: { fontSize: 12, color: colors.textSecondary },
-  emptyState: { paddingTop: 80, alignItems: 'center' },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
-  emptyHint: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  deleteTxt: { fontSize: 11, color: colors.inkFaint },
+  empty: { paddingTop: 80, alignItems: 'center' },
+  emptyTitle: { fontFamily: fonts.sans700, fontSize: 17, color: colors.inkFaint },
+  emptyHint: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkGhost, textAlign: 'center', marginTop: 8 },
 });

@@ -4,63 +4,101 @@ import { colors, fonts, layout } from '../theme';
 
 export default function AddScreen({ navigation }) {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>Add</Text>
-        <Text style={styles.subheading}>What would you like to add?</Text>
+    <View style={s.container}>
+      <View style={s.header}>
+        <Text style={s.heading}>Add</Text>
+        <Text style={s.subMono}>WHAT ARE YOU ADDING?</Text>
       </View>
 
-      <View style={styles.options}>
-        <TouchableOpacity
-          style={styles.optionCard}
-          onPress={() => navigation.navigate('AddItem')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.optionIcon}>👗</Text>
-          <View style={styles.optionText}>
-            <Text style={styles.optionTitle}>Add clothing item</Text>
-            <Text style={styles.optionDesc}>Add a top, trouser, skirt, shoes, or accessory to your wardrobe</Text>
-          </View>
-          <Text style={styles.arrow}>›</Text>
-        </TouchableOpacity>
+      {/* Add clothing item — blush card */}
+      <TouchableOpacity
+        style={s.pinkCard}
+        onPress={() => navigation.navigate('AddItem')}
+        activeOpacity={0.88}
+      >
+        <View style={s.pinkIcon}>
+          <Text style={{ fontSize: 24 }}>📷</Text>
+        </View>
+        <Text style={s.pinkTitle}>Add clothing item</Text>
+        <Text style={s.pinkDesc}>Photo your piece and save it to your wardrobe</Text>
+        <View style={s.startRow}>
+          <Text style={s.startText}>Start</Text>
+          <Text style={s.startArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.optionCard, styles.optionCardDark]}
-          onPress={() => navigation.navigate('CreateOutfit')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.optionIcon}>✨</Text>
-          <View style={styles.optionText}>
-            <Text style={[styles.optionTitle, styles.optionTitleLight]}>Create outfit</Text>
-            <Text style={[styles.optionDesc, styles.optionDescLight]}>
-              Combine items into a saved outfit combination
-            </Text>
-          </View>
-          <Text style={[styles.arrow, styles.arrowLight]}>›</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Create outfit — oxblood card */}
+      <TouchableOpacity
+        style={s.darkCard}
+        onPress={() => navigation.navigate('CreateOutfit')}
+        activeOpacity={0.88}
+      >
+        <View style={s.darkIcon}>
+          <Text style={{ fontSize: 24 }}>✨</Text>
+        </View>
+        <Text style={s.darkTitle}>Create outfit</Text>
+        <Text style={s.darkDesc}>Combine saved items into an outfit</Text>
+        <View style={s.startRow}>
+          <Text style={s.startTextGold}>Start</Text>
+          <Text style={s.startArrowGold}>→</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 32 },
-  heading: { ...fonts.heading },
-  subheading: { ...fonts.subtitle, marginTop: 4 },
-  options: { paddingHorizontal: layout.px, gap: 16 },
-  optionCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.cardBg, borderRadius: layout.cardRadius,
-    padding: 20, ...layout.cardShadow,
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: layout.px },
+  header: { paddingTop: 64, paddingBottom: 20 },
+  heading: {
+    fontFamily: fonts.sans800, fontSize: 33,
+    letterSpacing: -1, color: colors.ink,
   },
-  optionCardDark: { backgroundColor: colors.black },
-  optionIcon: { fontSize: 32, marginRight: 16 },
-  optionText: { flex: 1 },
-  optionTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
-  optionTitleLight: { color: colors.white },
-  optionDesc: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
-  optionDescLight: { color: 'rgba(255,255,255,0.65)' },
-  arrow: { fontSize: 22, color: colors.textTertiary, marginLeft: 8 },
-  arrowLight: { color: 'rgba(255,255,255,0.4)' },
+  subMono: {
+    fontFamily: fonts.mono, fontSize: 11,
+    letterSpacing: 1, color: colors.inkFaint, marginTop: 8,
+  },
+  pinkCard: {
+    backgroundColor: '#FCEEF0',
+    borderWidth: 1, borderColor: '#F2D3DA',
+    borderRadius: 22, padding: 24, marginBottom: 16,
+    shadowColor: '#C25E78', shadowOpacity: 0.18,
+    shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 3,
+  },
+  pinkIcon: {
+    width: 52, height: 52, borderRadius: 14,
+    backgroundColor: '#C25E78', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 18,
+  },
+  pinkTitle: {
+    fontFamily: fonts.sans800, fontSize: 21, letterSpacing: -0.4,
+    color: '#3A222A', marginBottom: 6,
+  },
+  pinkDesc: {
+    fontFamily: fonts.sans, fontSize: 14, color: '#A5748A', lineHeight: 20,
+  },
+  darkCard: {
+    backgroundColor: colors.oxblood,
+    borderRadius: 22, padding: 24,
+    shadowColor: colors.oxblood, shadowOpacity: 0.45,
+    shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 6,
+  },
+  darkIcon: {
+    width: 52, height: 52, borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+  },
+  darkTitle: {
+    fontFamily: fonts.sans800, fontSize: 21, letterSpacing: -0.4,
+    color: colors.white, marginBottom: 6,
+  },
+  darkDesc: {
+    fontFamily: fonts.sans, fontSize: 14,
+    color: 'rgba(245,239,227,0.66)', lineHeight: 20,
+  },
+  startRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16 },
+  startText: { fontFamily: fonts.sans700, fontSize: 13, color: '#C25E78' },
+  startArrow: { fontSize: 13, color: '#C25E78' },
+  startTextGold: { fontFamily: fonts.sans700, fontSize: 13, color: '#F0C56B' },
+  startArrowGold: { fontSize: 13, color: '#F0C56B' },
 });

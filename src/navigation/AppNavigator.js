@@ -11,12 +11,11 @@ import AddItemScreen from '../screens/AddItemScreen';
 import CreateOutfitScreen from '../screens/CreateOutfitScreen';
 import PlannerScreen from '../screens/PlannerScreen';
 import WardrobeScreen from '../screens/WardrobeScreen';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// Stack wrapper for Add flow so AddItem / CreateOutfit push on top
 function AddStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -27,21 +26,45 @@ function AddStack() {
   );
 }
 
-function TabIcon({ icon, label, focused }) {
+// SVG icons matching the design exactly
+function HomeIcon({ color }) {
   return (
-    <View style={iconStyles.wrap}>
-      <Text style={[iconStyles.icon, focused && iconStyles.iconFocused]}>{icon}</Text>
-      <Text style={[iconStyles.label, focused && iconStyles.labelFocused]}>{label}</Text>
+    <Text style={{ fontSize: 20, color }}>⌂</Text>
+  );
+}
+
+function TabIcon({ label, icon, focused }) {
+  const c = focused ? colors.ink : '#B4B1AC';
+  return (
+    <View style={ic.wrap}>
+      <Text style={[ic.icon, { color: c }]}>{icon}</Text>
+      <Text style={[ic.label, { color: c, fontFamily: focused ? fonts.mono700 : fonts.mono }]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-const iconStyles = StyleSheet.create({
-  wrap: { alignItems: 'center', paddingTop: 6 },
-  icon: { fontSize: 22, opacity: 0.35 },
-  iconFocused: { opacity: 1 },
-  label: { fontSize: 10, color: colors.textTertiary, marginTop: 2, fontWeight: '500' },
-  labelFocused: { color: colors.textPrimary, fontWeight: '700' },
+function AddTabIcon() {
+  return (
+    <View style={ic.addCircle}>
+      <Text style={ic.addPlus}>+</Text>
+    </View>
+  );
+}
+
+const ic = StyleSheet.create({
+  wrap: { alignItems: 'center', paddingTop: 4, gap: 4 },
+  icon: { fontSize: 21 },
+  label: { fontSize: 8.5, letterSpacing: 0.7, textTransform: 'uppercase' },
+  addCircle: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center',
+    marginTop: -18,
+    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 }, elevation: 8,
+  },
+  addPlus: { color: colors.white, fontSize: 26, fontWeight: '300', lineHeight: 30, marginTop: -2 },
 });
 
 export default function AppNavigator() {
@@ -53,9 +76,9 @@ export default function AppNavigator() {
           tabBarShowLabel: false,
           tabBarStyle: {
             backgroundColor: colors.white,
-            borderTopColor: colors.border,
+            borderTopColor: '#ECEAE7',
             borderTopWidth: 1,
-            height: 80,
+            height: 84,
             paddingBottom: 0,
           },
         }}
@@ -63,47 +86,29 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Home"
           component={HomeScreen}
-          options={{ tabBarIcon: ({ focused }) => <TabIcon icon="🏠" label="Home" focused={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="HOME" icon="⌂" focused={focused} /> }}
         />
         <Tab.Screen
           name="Outfits"
           component={OutfitsScreen}
-          options={{ tabBarIcon: ({ focused }) => <TabIcon icon="✨" label="Outfits" focused={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="OUTFITS" icon="☰" focused={focused} /> }}
         />
         <Tab.Screen
           name="Add"
           component={AddStack}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <View style={addIconStyles.circle}>
-                <Text style={addIconStyles.plus}>＋</Text>
-              </View>
-            ),
-          }}
+          options={{ tabBarIcon: () => <AddTabIcon /> }}
         />
         <Tab.Screen
           name="Planner"
           component={PlannerScreen}
-          options={{ tabBarIcon: ({ focused }) => <TabIcon icon="📅" label="Planner" focused={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="PLANNER" icon="▦" focused={focused} /> }}
         />
         <Tab.Screen
           name="Wardrobe"
           component={WardrobeScreen}
-          options={{ tabBarIcon: ({ focused }) => <TabIcon icon="👗" label="Wardrobe" focused={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon label="WARDROBE" icon="▭" focused={focused} /> }}
         />
       </Tab.Navigator>
     </NavigationContainer>
   );
 }
-
-const addIconStyles = StyleSheet.create({
-  circle: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: colors.black,
-    alignItems: 'center', justifyContent: 'center',
-    marginTop: -10,
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  plus: { color: colors.white, fontSize: 24, fontWeight: '300' },
-});
