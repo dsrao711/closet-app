@@ -18,7 +18,7 @@ import {
 } from '@expo-google-fonts/space-mono';
 
 import AppNavigator from './src/navigation/AppNavigator';
-import { seedDemoData } from './src/data/store';
+import { initStore } from './src/data/store';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -32,7 +32,7 @@ export default function App() {
   });
 
   useEffect(() => {
-    seedDemoData();
+    initStore();
   }, []);
 
   if (!fontsLoaded) {

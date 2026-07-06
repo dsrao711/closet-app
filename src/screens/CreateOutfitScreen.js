@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, StyleSheet, Alert,
+  TextInput, StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
 import { useStore, addOutfit } from '../data/store';
 import GarmentThumbnail, { ThumbnailRow } from '../components/GarmentThumbnail';
@@ -74,6 +74,7 @@ export default function CreateOutfitScreen({ navigation }) {
   const [comboType, setComboType] = useState('dress');
   const [selectedIds, setSelectedIds] = useState([]);
   const [outfitName, setOutfitName] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const TOTAL_STEPS = comboType === 'dress' ? 5 : 6;
 
@@ -104,7 +105,7 @@ export default function CreateOutfitScreen({ navigation }) {
     setStep(s => s - 1);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!outfitName.trim()) {
       Alert.alert('Name required', 'Give your outfit a name.');
       return;
@@ -113,8 +114,14 @@ export default function CreateOutfitScreen({ navigation }) {
       Alert.alert('No items', 'Select at least one piece.');
       return;
     }
-    addOutfit({ name: outfitName.trim(), vibe: occasion.toLowerCase(), itemIds: selectedIds });
-    navigation.goBack();
+    setSaving(true);
+    try {
+      await addOutfit({ name: outfitName.trim(), vibe: occasion.toLowerCase(), itemIds: selectedIds });
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert('Save failed', 'Could not save outfit. Check your connection and try again.');
+      setSaving(false);
+    }
   }
 
   const selectedItems = selectedIds.map(id => items.find(i => i.id === id)).filter(Boolean);
@@ -272,8 +279,11 @@ export default function CreateOutfitScreen({ navigation }) {
 
       {/* Footer CTA */}
       <View style={s.footer}>
-        <TouchableOpacity style={s.cta} onPress={isFinalStep ? handleSave : next}>
-          <Text style={s.ctaText}>{isFinalStep ? 'Save outfit' : 'Continue →'}</Text>
+        <TouchableOpacity style={[s.cta, saving && { opacity: 0.6 }]} onPress={isFinalStep ? handleSave : next} disabled={saving}>
+          {saving
+            ? <ActivityIndicator color={colors.white} />
+            : <Text style={s.ctaText}>{isFinalStep ? 'Save outfit' : 'Continue →'}</Text>
+          }
         </TouchableOpacity>
       </View>
     </View>

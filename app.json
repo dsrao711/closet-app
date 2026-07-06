@@ -1,27 +1,47 @@
 {
   "expo": {
-    "name": "closet-app",
+    "name": "Divya's Closet",
     "slug": "closet-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.divyarao.closetapp",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow Divya's Closet to access your photos to add clothing items.",
+        "NSCameraUsageDescription": "Allow Divya's Closet to use your camera to photograph your clothing."
+      }
     },
     "android": {
+      "package": "com.divyarao.closetapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Divya's Closet to access your photos to add clothing items.",
+          "cameraPermission": "Allow Divya's Closet to use your camera to photograph your clothing."
+        }
+      ]
     ]
   }
 }

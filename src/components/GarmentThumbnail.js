@@ -10,10 +10,11 @@ const CAT_EMOJI = {
 export default function GarmentThumbnail({ item, size = 46, round = true }) {
   const borderRadius = round ? size / 2 : Math.round(size * 0.22);
 
-  if (item?.imageUri) {
+  const photoUri = item?.imageUri || item?.imageUrl;
+  if (photoUri) {
     return (
       <Image
-        source={{ uri: item.imageUri }}
+        source={{ uri: photoUri }}
         style={{ width: size, height: size, borderRadius }}
       />
     );

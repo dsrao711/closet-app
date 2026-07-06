@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, Image,
+  StyleSheet, Alert, Image, ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { addItem } from '../data/store';
@@ -48,6 +48,7 @@ export default function AddItemScreen({ navigation }) {
   const [category, setCategory] = useState('top');
   const [occasion, setOccasion] = useState('workwear');
   const [label, setLabel] = useState('');
+  const [saving, setSaving] = useState(false);
 
   async function takePhoto() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -69,13 +70,19 @@ export default function AddItemScreen({ navigation }) {
     if (!result.canceled) setImageUri(result.assets[0].uri);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!label.trim()) {
       Alert.alert('Name required', 'Give this item a name.');
       return;
     }
-    addItem({ label: label.trim(), category, occasion, imageUri: imageUri || null });
-    navigation.goBack();
+    setSaving(true);
+    try {
+      await addItem({ label: label.trim(), category, occasion, imageUri: imageUri || null });
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert('Save failed', 'Could not save item. Check your connection and try again.');
+      setSaving(false);
+    }
   }
 
   return (
@@ -147,8 +154,11 @@ export default function AddItemScreen({ navigation }) {
 
       {/* Sticky save button */}
       <View style={s.footer}>
-        <TouchableOpacity style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveBtnText}>Save item</Text>
+        <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
+          {saving
+            ? <ActivityIndicator color={colors.white} />
+            : <Text style={s.saveBtnText}>Save item</Text>
+          }
         </TouchableOpacity>
       </View>
     </View>
