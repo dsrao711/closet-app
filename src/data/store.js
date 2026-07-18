@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp,
+  collection, doc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp,
 } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db, FIREBASE_READY } from '../config/firebase';
 import { initAuth, getUid } from '../services/authService';
 import { uploadItemPhoto, deleteItemPhoto } from '../services/storageService';
+
+const PROFILE_STORAGE_KEY = 'closet_demo_profile';
 
 // ── Local cache (Firestore is source of truth, or in-memory if not configured) ──
 let _items = [];
@@ -13,6 +16,7 @@ let _weeklyPlan = {
   current: { Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null },
   next:    { Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null },
 };
+let _profile = null;
 
 let _listeners = [];
 let _authPromise = null;
@@ -33,12 +37,17 @@ export async function initStore() {
   if (!FIREBASE_READY) {
     // Firebase not configured — run with demo data in memory
     _seedDemoData();
+    const raw = await AsyncStorage.getItem(PROFILE_STORAGE_KEY);
+    if (raw) _profile = JSON.parse(raw);
     return;
   }
 
   _authPromise = initAuth();
   const uid = await _authPromise;
   if (!uid) { console.error('Auth failed'); return; }
+
+  const profileSnap = await getDoc(doc(db, `users/${uid}`));
+  if (profileSnap.exists()) _profile = profileSnap.data();
 
   // Real-time items listener
   onSnapshot(collection(db, `users/${uid}/items`), snap => {
@@ -87,6 +96,25 @@ export async function initStore() {
       _notify();
     }
   });
+}
+
+// ── Profile / onboarding ───────────────────────────────────
+export function getProfile() { return _profile; }
+export function isOnboarded() { return !!(_profile && _profile.name && _profile.mobile); }
+
+export async function saveProfile({ name, mobile }) {
+  _profile = { name, mobile };
+
+  if (!FIREBASE_READY) {
+    await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(_profile));
+    _notify();
+    return;
+  }
+
+  const uid = await _authPromise;
+  if (!uid) throw new Error('Not authenticated');
+  await setDoc(doc(db, `users/${uid}`), { name, mobile, createdAt: serverTimestamp() }, { merge: true });
+  _notify();
 }
 
 // ── Items ──────────────────────────────────────────────────
@@ -246,6 +274,7 @@ export function useStore() {
     outfits: getOutfits(),
     weeklyPlan: getWeeklyPlan(),
     todayOutfit: getTodayOutfit(),
+    profile: getProfile(),
   };
 }
 

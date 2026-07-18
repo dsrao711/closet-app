@@ -9,12 +9,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Firebase Console → Project Settings → Your Apps → SDK setup
 // ─────────────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey:            "REPLACE_ME",
-  authDomain:        "REPLACE_ME",
-  projectId:         "REPLACE_ME",
-  storageBucket:     "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId:             "REPLACE_ME",
+  apiKey:            "AIzaSyAfmQqLkUN2YXdoQ2ESoeMx3Lh09J-pzX8",
+  authDomain:        "closet-app-divyarao.firebaseapp.com",
+  projectId:         "closet-app-divyarao",
+  storageBucket:     "closet-app-divyarao.firebasestorage.app",
+  messagingSenderId: "454617858598",
+  appId:             "1:454617858598:web:25a53b89f587232dc45ce7",
 };
 // ─────────────────────────────────────────────────────────────
 

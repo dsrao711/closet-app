@@ -19,11 +19,14 @@ const DAYS_LONG = { Sun: 'SUN', Mon: 'MON', Tue: 'TUE', Wed: 'WED', Thu: 'THU', 
 const DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function HomeScreen({ navigation }) {
-  const { items, outfits, weeklyPlan, todayOutfit } = useStore();
+  const { items, outfits, weeklyPlan, todayOutfit, profile } = useStore();
 
   const todayKey = DAY_MAP[new Date().getDay()];
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+  const hour = now.getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = profile?.name?.split(' ')[0] || '';
 
   const counts = {};
   items.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
@@ -35,7 +38,7 @@ export default function HomeScreen({ navigation }) {
     <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.greeting}>Good morning, Divya</Text>
+        <Text style={s.greeting}>{timeGreeting}{firstName ? `, ${firstName}` : ''}</Text>
         <Text style={s.heading}>Divya's{'\n'}Closet</Text>
         <Text style={s.subMono}>{items.length} ITEMS · {outfits.length} OUTFITS</Text>
       </View>
