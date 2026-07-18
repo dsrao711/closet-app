@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { useStore, deleteItem } from '../data/store';
 import GarmentThumbnail from '../components/GarmentThumbnail';
+import Icon from '../components/Icon';
 import { colors, fonts, layout } from '../theme';
 import { itemDisplayName, CATEGORY_LABELS, occasionDisplay } from '../utils/labels';
 
@@ -108,7 +109,8 @@ export default function WardrobeScreen({ navigation }) {
           <Text style={s.subMono}>{items.length} PIECES</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('Add')}>
-          <Text style={s.addBtnText}>＋ Add</Text>
+          <Icon name="plus" size={15} color={colors.white} strokeWidth={2.2} />
+          <Text style={s.addBtnText}>Add</Text>
         </TouchableOpacity>
       </View>
 
@@ -179,7 +181,7 @@ const s = StyleSheet.create({
   },
   addBtnText: { fontFamily: fonts.sans700, fontSize: 13.5, color: colors.white },
   filterBar: { maxHeight: 52 },
-  filterContent: { paddingHorizontal: layout.px, gap: 8 },
+  filterContent: { paddingHorizontal: layout.px, gap: 8, alignItems: 'center' },
   chip: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.lineStrong,
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,

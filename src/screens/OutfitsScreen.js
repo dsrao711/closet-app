@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useStore, deleteOutfit } from '../data/store';
 import { ThumbnailRow } from '../components/GarmentThumbnail';
+import Icon from '../components/Icon';
 import { colors, fonts, layout } from '../theme';
 import { itemDisplayName, outfitDisplayName } from '../utils/labels';
 
@@ -48,7 +49,8 @@ export default function OutfitsScreen({ navigation }) {
           <Text style={s.subMono}>{outfits.length} OUTFITS</Text>
         </View>
         <TouchableOpacity style={s.createBtn} onPress={() => navigation.navigate('Add')}>
-          <Text style={s.createBtnText}>＋ Create</Text>
+          <Icon name="plus" size={15} color={colors.white} strokeWidth={2.2} />
+          <Text style={s.createBtnText}>Create</Text>
         </TouchableOpacity>
       </View>
 
@@ -101,10 +103,11 @@ const s = StyleSheet.create({
   createBtn: {
     backgroundColor: colors.ink, borderRadius: 999,
     paddingHorizontal: 18, paddingVertical: 10, marginTop: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   createBtnText: { fontFamily: fonts.sans700, fontSize: 13.5, color: colors.white },
   filterBar: { maxHeight: 52 },
-  filterContent: { paddingHorizontal: layout.px, gap: 8 },
+  filterContent: { paddingHorizontal: layout.px, gap: 8, alignItems: 'center' },
   chip: {
     backgroundColor: colors.bg, borderWidth: 1,
     borderColor: colors.lineStrong, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,

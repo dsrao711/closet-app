@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useStore } from '../data/store';
 import { ThumbnailRow } from '../components/GarmentThumbnail';
+import Icon from '../components/Icon';
 import { colors, fonts, layout } from '../theme';
 import { itemDisplayName, outfitDisplayName } from '../utils/labels';
 
@@ -34,14 +35,15 @@ export default function HomeScreen({ navigation }) {
   const statCats = STAT_CATS.filter(c => counts[c.key] > 0);
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <View style={s.screen}>
+      {/* Header — fixed above the scroll area so it can never be scrolled/bounced under the status bar */}
       <View style={s.header}>
         <Text style={s.greeting}>{timeGreeting}{firstName ? `, ${firstName}` : ''}</Text>
         <Text style={s.heading}>Divya's{'\n'}Closet</Text>
         <Text style={s.subMono}>{items.length} ITEMS · {outfits.length} OUTFITS</Text>
       </View>
 
+      <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       {/* Stats grid */}
       {statCats.length > 0 && (
         <View style={s.statsGrid}>
@@ -80,26 +82,28 @@ export default function HomeScreen({ navigation }) {
       {/* Quick actions */}
       <View style={s.actionsRow}>
         <TouchableOpacity style={[s.actionCard, s.actionCardDark]} onPress={() => navigation.navigate('Add')}>
-          <Text style={s.actionIcon}>＋</Text>
+          <Icon name="plus" size={20} color={colors.white} strokeWidth={1.8} />
           <Text style={[s.actionLabel, { color: colors.white }]}>Add item</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Planner')}>
-          <Text style={s.actionIcon}>📅</Text>
+          <Icon name="planner" size={20} color={colors.ink} strokeWidth={1.8} />
           <Text style={s.actionLabel}>Plan week</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Wardrobe')}>
-          <Text style={s.actionIcon}>👗</Text>
+          <Icon name="wardrobe" size={20} color={colors.ink} strokeWidth={1.8} />
           <Text style={s.actionLabel}>Wardrobe</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.bg },
   container: { flex: 1, backgroundColor: colors.bg },
   content: { paddingBottom: 110 },
-  header: { paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 20 },
+  header: { paddingHorizontal: layout.px, paddingTop: 64, paddingBottom: 20, backgroundColor: colors.bg },
   greeting: {
     fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.5,
     textTransform: 'uppercase', color: colors.inkGhost, marginBottom: 6,
@@ -171,7 +175,6 @@ const s = StyleSheet.create({
   actionCardDark: {
     backgroundColor: colors.ink, borderColor: colors.ink,
   },
-  actionIcon: { fontSize: 20 },
   actionLabel: {
     fontFamily: fonts.sans700, fontSize: 13, letterSpacing: -0.1,
     color: colors.ink,

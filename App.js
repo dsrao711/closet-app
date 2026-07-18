@@ -2,6 +2,7 @@ import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import {
   InstrumentSerif_400Regular,
@@ -52,12 +53,12 @@ export default function App() {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" />
       {onboarded
         ? <AppNavigator />
         : <OnboardingScreen onComplete={() => setOnboarded(true)} />
       }
-    </>
+    </SafeAreaProvider>
   );
 }
