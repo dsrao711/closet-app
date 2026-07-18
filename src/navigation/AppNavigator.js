@@ -9,6 +9,8 @@ import OutfitsScreen from '../screens/OutfitsScreen';
 import AddScreen from '../screens/AddScreen';
 import AddItemScreen from '../screens/AddItemScreen';
 import CreateOutfitScreen from '../screens/CreateOutfitScreen';
+import EditItemScreen from '../screens/EditItemScreen';
+import EditOutfitScreen from '../screens/EditOutfitScreen';
 import PlannerScreen from '../screens/PlannerScreen';
 import WardrobeScreen from '../screens/WardrobeScreen';
 import { colors, fonts } from '../theme';
@@ -22,6 +24,24 @@ function AddStack() {
       <Stack.Screen name="AddChoice" component={AddScreen} />
       <Stack.Screen name="AddItem" component={AddItemScreen} />
       <Stack.Screen name="CreateOutfit" component={CreateOutfitScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function WardrobeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="WardrobeList" component={WardrobeScreen} />
+      <Stack.Screen name="EditItem" component={EditItemScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function OutfitsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="OutfitsList" component={OutfitsScreen} />
+      <Stack.Screen name="EditOutfit" component={EditOutfitScreen} />
     </Stack.Navigator>
   );
 }
@@ -90,7 +110,7 @@ export default function AppNavigator() {
         />
         <Tab.Screen
           name="Outfits"
-          component={OutfitsScreen}
+          component={OutfitsStack}
           options={{ tabBarIcon: ({ focused }) => <TabIcon label="OUTFITS" icon="☰" focused={focused} /> }}
         />
         <Tab.Screen
@@ -105,7 +125,7 @@ export default function AppNavigator() {
         />
         <Tab.Screen
           name="Wardrobe"
-          component={WardrobeScreen}
+          component={WardrobeStack}
           options={{ tabBarIcon: ({ focused }) => <TabIcon label="WARDROBE" icon="▭" focused={focused} /> }}
         />
       </Tab.Navigator>

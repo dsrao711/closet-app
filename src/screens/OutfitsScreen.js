@@ -3,32 +3,33 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'rea
 import { useStore, deleteOutfit } from '../data/store';
 import { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
+import { itemDisplayName, outfitDisplayName } from '../utils/labels';
 
 const VIBES = ['All', 'workwear', 'casual', 'date night', 'party', 'vacation'];
 const VIBE_DISPLAY = v => v.charAt(0).toUpperCase() + v.slice(1);
 
-function OutfitCard({ outfit, items, onDelete }) {
+function OutfitCard({ outfit, items, onPress, onDelete }) {
   const outfitItems = outfit.itemIds.map(id => items.find(i => i.id === id)).filter(Boolean);
   return (
-    <View style={s.card}>
+    <TouchableOpacity style={s.card} onPress={() => onPress(outfit)} activeOpacity={0.9}>
       <ThumbnailRow itemIds={outfit.itemIds} items={items} size={46} overlap={14} />
       <View style={s.cardRow}>
-        <Text style={s.cardTitle}>{outfit.name}</Text>
+        <Text style={s.cardTitle}>{outfitDisplayName(outfit)}</Text>
         <View style={s.vibeChip}>
           <Text style={s.vibeChipText}>{outfit.vibe.toUpperCase()}</Text>
         </View>
       </View>
-      <Text style={s.cardItems}>{outfitItems.map(i => i.label).join(' · ')}</Text>
+      <Text style={s.cardItems}>{outfitItems.map(itemDisplayName).join(' · ')}</Text>
       <TouchableOpacity
         style={s.deleteBtn}
-        onPress={() => Alert.alert('Remove outfit', `Delete "${outfit.name}"?`, [
+        onPress={() => Alert.alert('Remove outfit', `Delete "${outfitDisplayName(outfit)}"?`, [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Delete', style: 'destructive', onPress: () => onDelete(outfit.id) },
         ])}
       >
         <Text style={s.deleteTxt}>✕</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -75,7 +76,13 @@ export default function OutfitsScreen({ navigation }) {
           </View>
         ) : (
           filtered.map(outfit => (
-            <OutfitCard key={outfit.id} outfit={outfit} items={items} onDelete={deleteOutfit} />
+            <OutfitCard
+              key={outfit.id}
+              outfit={outfit}
+              items={items}
+              onPress={(o) => navigation.navigate('EditOutfit', { outfit: o })}
+              onDelete={deleteOutfit}
+            />
           ))
         )}
       </ScrollView>

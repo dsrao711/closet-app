@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { colors } from '../theme';
 
 const CAT_EMOJI = {
@@ -16,6 +17,9 @@ export default function GarmentThumbnail({ item, size = 46, round = true }) {
       <Image
         source={{ uri: photoUri }}
         style={{ width: size, height: size, borderRadius }}
+        contentFit="cover"
+        cachePolicy="disk"
+        transition={150}
       />
     );
   }

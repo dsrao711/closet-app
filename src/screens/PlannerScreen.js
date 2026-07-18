@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'rea
 import { useStore, setDayOutfit, clearDayOutfit } from '../data/store';
 import { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
+import { itemDisplayName, outfitDisplayName } from '../utils/labels';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_FULL = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
@@ -43,9 +44,9 @@ function OutfitPickerModal({ visible, day, week, outfits, items, onClose }) {
                 >
                   <ThumbnailRow itemIds={outfit.itemIds} items={items} size={40} overlap={12} />
                   <View style={s.optionInfo}>
-                    <Text style={s.optionName}>{outfit.name}</Text>
+                    <Text style={s.optionName}>{outfitDisplayName(outfit)}</Text>
                     <Text style={s.optionItems} numberOfLines={1}>
-                      {outfitItems.map(i => i.label).join(' · ')}
+                      {outfitItems.map(itemDisplayName).join(' · ')}
                     </Text>
                   </View>
                   <View style={s.optionVibe}>
@@ -76,7 +77,7 @@ function DayRow({ day, week, plan, outfits, items, isToday, onPress }) {
         {outfit ? (
           <>
             <ThumbnailRow itemIds={outfit.itemIds} items={items} size={30} overlap={9} />
-            <Text style={s.dayOutfitName}>{outfit.name}</Text>
+            <Text style={s.dayOutfitName}>{outfitDisplayName(outfit)}</Text>
           </>
         ) : (
           <Text style={s.dayEmpty}>Tap to plan</Text>

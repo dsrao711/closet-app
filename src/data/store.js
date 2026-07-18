@@ -24,6 +24,12 @@ let _initialized = false;
 
 function _notify() { _listeners.forEach(fn => fn()); }
 
+// Normalizes occasion to an array — handles legacy docs saved as a single string
+function _normalizeOccasion(raw) {
+  const arr = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+  return arr.length ? arr : ['casual'];
+}
+
 export function subscribe(fn) {
   _listeners.push(fn);
   return () => { _listeners = _listeners.filter(l => l !== fn); };
@@ -58,7 +64,7 @@ export async function initStore() {
           id: d.id,
           label: data.label || '',
           category: data.category || 'top',
-          occasion: data.occasion || 'casual',
+          occasion: _normalizeOccasion(data.occasion),
           imageUri: data.imageUrl || null,
           storagePath: data.storagePath || null,
           addedAt: data.createdAt?.toMillis() || Date.now(),
@@ -122,9 +128,10 @@ export function getItems() { return _items; }
 
 export async function addItem(item) {
   const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const occasion = _normalizeOccasion(item.occasion);
 
   if (!FIREBASE_READY) {
-    const newItem = { id: itemId, ...item, addedAt: Date.now() };
+    const newItem = { id: itemId, ...item, occasion, addedAt: Date.now() };
     _items = [newItem, ..._items];
     _notify();
     return newItem;
@@ -150,13 +157,50 @@ export async function addItem(item) {
   await setDoc(doc(db, `users/${uid}/items/${itemId}`), {
     label: item.label || '',
     category: item.category || 'top',
-    occasion: item.occasion || 'casual',
+    occasion,
     imageUrl,
     storagePath,
     createdAt: serverTimestamp(),
   });
 
-  return { id: itemId, label: item.label, category: item.category, occasion: item.occasion, imageUri: imageUrl };
+  return { id: itemId, label: item.label, category: item.category, occasion, imageUri: imageUrl };
+}
+
+export async function updateItem(id, updates) {
+  const occasion = _normalizeOccasion(updates.occasion);
+
+  if (!FIREBASE_READY) {
+    _items = _items.map(i => i.id === id ? { ...i, ...updates, occasion } : i);
+    _notify();
+    return;
+  }
+
+  const uid = await _authPromise;
+  if (!uid) throw new Error('Not authenticated');
+
+  const current = _items.find(i => i.id === id);
+  let imageUrl = current?.imageUri || null;
+  let storagePath = current?.storagePath || null;
+
+  if (updates.imageUri && updates.imageUri !== current?.imageUri) {
+    const isRemote = updates.imageUri.startsWith('https://') || updates.imageUri.startsWith('http://');
+    if (isRemote) {
+      imageUrl = updates.imageUri;
+    } else {
+      if (storagePath) deleteItemPhoto(storagePath);
+      const result = await uploadItemPhoto(updates.imageUri, uid, id);
+      imageUrl = result.imageUrl;
+      storagePath = result.storagePath;
+    }
+  }
+
+  await setDoc(doc(db, `users/${uid}/items/${id}`), {
+    label: updates.label || '',
+    category: updates.category || 'top',
+    occasion,
+    imageUrl,
+    storagePath,
+  }, { merge: true });
 }
 
 export async function deleteItem(id) {
@@ -199,6 +243,23 @@ export async function addOutfit(outfit) {
   });
 
   return { id: outfitId, ...outfit };
+}
+
+export async function updateOutfit(id, updates) {
+  if (!FIREBASE_READY) {
+    _outfits = _outfits.map(o => o.id === id ? { ...o, ...updates } : o);
+    _notify();
+    return;
+  }
+
+  const uid = await _authPromise;
+  if (!uid) throw new Error('Not authenticated');
+
+  await setDoc(doc(db, `users/${uid}/outfits/${id}`), {
+    name: updates.name || '',
+    vibe: updates.vibe || 'casual',
+    itemIds: updates.itemIds || [],
+  }, { merge: true });
 }
 
 export async function deleteOutfit(id) {
@@ -284,19 +345,19 @@ function _seedDemoData() {
   const t = Date.now();
 
   const demoItems = [
-    { id: mkId('item'), label: 'Eyelet blouse, noir', category: 'top', occasion: 'date night', imageUri: null, addedAt: t },
-    { id: mkId('item'), label: 'Denim camp shirt', category: 'top', occasion: 'casual', imageUri: null, addedAt: t - 1 },
-    { id: mkId('item'), label: 'Gingham overshirt', category: 'top', occasion: 'casual', imageUri: null, addedAt: t - 2 },
-    { id: mkId('item'), label: 'Silk camisole', category: 'top', occasion: 'date night', imageUri: null, addedAt: t - 3 },
-    { id: mkId('item'), label: 'Wide-leg chino culottes', category: 'bottom', occasion: 'casual', imageUri: null, addedAt: t - 4 },
-    { id: mkId('item'), label: 'Charcoal wool trousers', category: 'bottom', occasion: 'workwear', imageUri: null, addedAt: t - 5 },
-    { id: mkId('item'), label: 'Plaid pleated skirt', category: 'skirt', occasion: 'workwear', imageUri: null, addedAt: t - 6 },
-    { id: mkId('item'), label: 'Dotted tulle midi skirt', category: 'skirt', occasion: 'party', imageUri: null, addedAt: t - 7 },
-    { id: mkId('item'), label: 'Tweed heart-button dress', category: 'dress', occasion: 'date night', imageUri: null, addedAt: t - 8 },
-    { id: mkId('item'), label: 'Leather loafers', category: 'shoes', occasion: 'workwear', imageUri: null, addedAt: t - 9 },
-    { id: mkId('item'), label: 'Burgundy slingback heels', category: 'shoes', occasion: 'date night', imageUri: null, addedAt: t - 10 },
-    { id: mkId('item'), label: 'Structured tote', category: 'bag', occasion: 'workwear', imageUri: null, addedAt: t - 11 },
-    { id: mkId('item'), label: 'Rose-print shoulder bag', category: 'bag', occasion: 'date night', imageUri: null, addedAt: t - 12 },
+    { id: mkId('item'), label: 'Eyelet blouse, noir', category: 'top', occasion: ['date night'], imageUri: null, addedAt: t },
+    { id: mkId('item'), label: 'Denim camp shirt', category: 'top', occasion: ['casual'], imageUri: null, addedAt: t - 1 },
+    { id: mkId('item'), label: 'Gingham overshirt', category: 'top', occasion: ['casual'], imageUri: null, addedAt: t - 2 },
+    { id: mkId('item'), label: 'Silk camisole', category: 'top', occasion: ['date night', 'party'], imageUri: null, addedAt: t - 3 },
+    { id: mkId('item'), label: 'Wide-leg chino culottes', category: 'bottom', occasion: ['casual'], imageUri: null, addedAt: t - 4 },
+    { id: mkId('item'), label: 'Charcoal wool trousers', category: 'bottom', occasion: ['workwear'], imageUri: null, addedAt: t - 5 },
+    { id: mkId('item'), label: 'Plaid pleated skirt', category: 'skirt', occasion: ['workwear'], imageUri: null, addedAt: t - 6 },
+    { id: mkId('item'), label: 'Dotted tulle midi skirt', category: 'skirt', occasion: ['party'], imageUri: null, addedAt: t - 7 },
+    { id: mkId('item'), label: 'Tweed heart-button dress', category: 'dress', occasion: ['date night'], imageUri: null, addedAt: t - 8 },
+    { id: mkId('item'), label: 'Leather loafers', category: 'shoes', occasion: ['workwear', 'casual'], imageUri: null, addedAt: t - 9 },
+    { id: mkId('item'), label: 'Burgundy slingback heels', category: 'shoes', occasion: ['date night', 'party'], imageUri: null, addedAt: t - 10 },
+    { id: mkId('item'), label: 'Structured tote', category: 'bag', occasion: ['workwear'], imageUri: null, addedAt: t - 11 },
+    { id: mkId('item'), label: 'Rose-print shoulder bag', category: 'bag', occasion: ['date night'], imageUri: null, addedAt: t - 12 },
   ];
 
   _items = demoItems;

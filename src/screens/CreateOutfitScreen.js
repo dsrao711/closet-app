@@ -6,6 +6,7 @@ import {
 import { useStore, addOutfit } from '../data/store';
 import GarmentThumbnail, { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
+import { itemDisplayName, occasionDisplay } from '../utils/labels';
 
 const OCCASIONS = ['Workwear', 'Casual', 'Date night', 'Party', 'Vacation', 'Brunch', 'Concert'];
 const COMBO_TYPES = [
@@ -58,8 +59,8 @@ function ItemGrid({ categoryItems, selected, onToggle, size = 2 }) {
                 </View>
               )}
             </View>
-            <Text style={s.gridLabel} numberOfLines={2}>{item.label}</Text>
-            <Text style={s.gridOcc}>{item.occasion.toUpperCase()}</Text>
+            <Text style={s.gridLabel} numberOfLines={2}>{itemDisplayName(item)}</Text>
+            <Text style={s.gridOcc} numberOfLines={1}>{occasionDisplay(item.occasion).toUpperCase()}</Text>
           </TouchableOpacity>
         );
       })}
@@ -106,10 +107,6 @@ export default function CreateOutfitScreen({ navigation }) {
   }
 
   async function handleSave() {
-    if (!outfitName.trim()) {
-      Alert.alert('Name required', 'Give your outfit a name.');
-      return;
-    }
     if (selectedIds.length === 0) {
       Alert.alert('No items', 'Select at least one piece.');
       return;
@@ -231,7 +228,7 @@ export default function CreateOutfitScreen({ navigation }) {
         <Text style={s.stepHint}>Add accessories, then name your outfit.</Text>
         <Text style={s.monoLabel}>ACCESSORIES (OPTIONAL)</Text>
         <ItemGrid categoryItems={catItems} selected={selectedIds} onToggle={toggle} />
-        <Text style={s.monoLabel}>OUTFIT NAME</Text>
+        <Text style={s.monoLabel}>OUTFIT NAME (OPTIONAL)</Text>
         <TextInput
           style={s.nameInput}
           placeholder="e.g. Dinner Reservations"
@@ -269,7 +266,7 @@ export default function CreateOutfitScreen({ navigation }) {
           <View style={s.previewStrip}>
             <ThumbnailRow itemIds={selectedIds} items={items} size={40} overlap={12} />
             <Text style={s.previewText} numberOfLines={1}>
-              {selectedItems.map(i => i.label).join('  ·  ')}
+              {selectedItems.map(itemDisplayName).join('  ·  ')}
             </Text>
           </View>
         )}

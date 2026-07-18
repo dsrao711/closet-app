@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useStore } from '../data/store';
 import { ThumbnailRow } from '../components/GarmentThumbnail';
 import { colors, fonts, layout } from '../theme';
+import { itemDisplayName, outfitDisplayName } from '../utils/labels';
 
 const STAT_CATS = [
   { key: 'top',       label: 'TOPS' },
@@ -32,8 +33,6 @@ export default function HomeScreen({ navigation }) {
   items.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
   const statCats = STAT_CATS.filter(c => counts[c.key] > 0);
 
-  const displayOutfits = todayOutfit ? [todayOutfit] : outfits.slice(0, 2);
-
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -55,36 +54,28 @@ export default function HomeScreen({ navigation }) {
         </View>
       )}
 
-      {/* Today's outfit */}
-      <View style={s.section}>
-        <View style={s.sectionRow}>
-          <Text style={s.sectionTitle}>Today's outfit</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Planner')}>
-            <Text style={s.sectionMeta}>{DAYS_LONG[todayKey]} · {dateStr.split(',')[1]?.trim()} →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {displayOutfits.length === 0 ? (
-          <View style={s.emptyCard}>
-            <Text style={s.emptyTitle}>Nothing planned yet</Text>
-            <Text style={s.emptyHint}>Use the Planner to set up your week.</Text>
+      {/* Today's outfit — only shown when today actually has a planned outfit */}
+      {todayOutfit && (
+        <View style={s.section}>
+          <View style={s.sectionRow}>
+            <Text style={s.sectionTitle}>Today's outfit</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Planner')}>
+              <Text style={s.sectionMeta}>{DAYS_LONG[todayKey]} · {dateStr.split(',')[1]?.trim()} →</Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          displayOutfits.map(outfit => {
-            const outfitItems = outfit.itemIds.map(id => items.find(i => i.id === id)).filter(Boolean);
-            return (
-              <View key={outfit.id} style={s.outfitCard}>
-                <Text style={s.outfitVibeMono}>{outfit.vibe.toUpperCase()}</Text>
-                <Text style={s.outfitName}>{outfit.name}</Text>
-                <View style={{ marginTop: 16 }}>
-                  <ThumbnailRow itemIds={outfit.itemIds} items={items} size={56} overlap={14} />
-                </View>
-                <Text style={s.outfitItems}>{outfitItems.map(i => i.label).join(' · ')}</Text>
-              </View>
-            );
-          })
-        )}
-      </View>
+
+          <View style={s.outfitCard}>
+            <Text style={s.outfitVibeMono}>{todayOutfit.vibe.toUpperCase()}</Text>
+            <Text style={s.outfitName}>{outfitDisplayName(todayOutfit)}</Text>
+            <View style={{ marginTop: 16 }}>
+              <ThumbnailRow itemIds={todayOutfit.itemIds} items={items} size={56} overlap={14} />
+            </View>
+            <Text style={s.outfitItems}>
+              {todayOutfit.itemIds.map(id => items.find(i => i.id === id)).filter(Boolean).map(itemDisplayName).join(' · ')}
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Quick actions */}
       <View style={s.actionsRow}>
@@ -168,12 +159,6 @@ const s = StyleSheet.create({
     fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkFaint,
     marginTop: 14, lineHeight: 18,
   },
-  emptyCard: {
-    borderWidth: 1, borderColor: colors.line, borderRadius: 20,
-    padding: 24, alignItems: 'center',
-  },
-  emptyTitle: { fontFamily: fonts.sans700, fontSize: 16, color: colors.inkFaint },
-  emptyHint: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkGhost, marginTop: 6 },
   actionsRow: {
     flexDirection: 'row', paddingHorizontal: layout.px, gap: 9,
   },

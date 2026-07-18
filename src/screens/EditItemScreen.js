@@ -5,9 +5,9 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { addItem } from '../data/store';
+import { updateItem, deleteItem } from '../data/store';
 import { colors, fonts, layout } from '../theme';
-import { CATEGORY_OPTIONS as CATEGORIES, OCCASION_OPTIONS as OCCASIONS } from '../utils/labels';
+import { CATEGORY_OPTIONS, OCCASION_OPTIONS, itemDisplayName } from '../utils/labels';
 import { resizeForUpload } from '../utils/image';
 
 function MonoLabel({ children }) {
@@ -33,11 +33,12 @@ function ChipRow({ options, value, onChange, multi = false }) {
   );
 }
 
-export default function AddItemScreen({ navigation }) {
-  const [imageUri, setImageUri] = useState(null);
-  const [category, setCategory] = useState('top');
-  const [occasions, setOccasions] = useState(['workwear']);
-  const [label, setLabel] = useState('');
+export default function EditItemScreen({ navigation, route }) {
+  const { item } = route.params;
+  const [imageUri, setImageUri] = useState(item.imageUri || null);
+  const [category, setCategory] = useState(item.category);
+  const [occasions, setOccasions] = useState(item.occasion || []);
+  const [label, setLabel] = useState(item.label || '');
   const [saving, setSaving] = useState(false);
 
   async function takePhoto() {
@@ -67,12 +68,25 @@ export default function AddItemScreen({ navigation }) {
   async function handleSave() {
     setSaving(true);
     try {
-      await addItem({ label: label.trim(), category, occasion: occasions, imageUri: imageUri || null });
+      await updateItem(item.id, { label: label.trim(), category, occasion: occasions, imageUri });
       navigation.goBack();
     } catch (err) {
-      Alert.alert('Save failed', 'Could not save item. Check your connection and try again.');
+      Alert.alert('Save failed', 'Could not save changes. Check your connection and try again.');
       setSaving(false);
     }
+  }
+
+  function handleDelete() {
+    Alert.alert('Delete item', `Delete "${itemDisplayName(item)}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          await deleteItem(item.id);
+          navigation.goBack();
+        },
+      },
+    ]);
   }
 
   return (
@@ -82,21 +96,14 @@ export default function AddItemScreen({ navigation }) {
         <TouchableOpacity style={s.backCircle} onPress={() => navigation.goBack()}>
           <Text style={s.backChevron}>‹</Text>
         </TouchableOpacity>
-        <Text style={s.navTitle}>Add item</Text>
+        <Text style={s.navTitle}>Edit item</Text>
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Photo section */}
-        <MonoLabel>PHOTO</MonoLabel>
-
         {imageUri ? (
           <View style={s.photoPreview}>
             <Image source={{ uri: imageUri }} style={s.photoImg} />
-            {/* Overlay badge */}
-            <View style={s.photoBadge}>
-              <Text style={s.photoBadgeText}>✓ PHOTO ADDED</Text>
-            </View>
-            {/* Action buttons */}
             <View style={s.photoActions}>
               <TouchableOpacity style={s.photoActionBtn} onPress={uploadPhoto}>
                 <Text style={s.photoActionIcon}>↔</Text>
@@ -124,11 +131,11 @@ export default function AddItemScreen({ navigation }) {
 
         {/* Category */}
         <MonoLabel>CATEGORY</MonoLabel>
-        <ChipRow options={CATEGORIES} value={category} onChange={setCategory} />
+        <ChipRow options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
 
         {/* Occasion */}
         <MonoLabel>OCCASION (SELECT ANY)</MonoLabel>
-        <ChipRow options={OCCASIONS} value={occasions} onChange={toggleOccasion} multi />
+        <ChipRow options={OCCASION_OPTIONS} value={occasions} onChange={toggleOccasion} multi />
 
         {/* Name */}
         <MonoLabel>ITEM NAME (OPTIONAL)</MonoLabel>
@@ -140,6 +147,10 @@ export default function AddItemScreen({ navigation }) {
           onChangeText={setLabel}
           returnKeyType="done"
         />
+
+        <TouchableOpacity style={s.deleteRow} onPress={handleDelete}>
+          <Text style={s.deleteText}>Delete item</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Sticky save button */}
@@ -147,7 +158,7 @@ export default function AddItemScreen({ navigation }) {
         <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
           {saving
             ? <ActivityIndicator color={colors.white} />
-            : <Text style={s.saveBtnText}>Save item</Text>
+            : <Text style={s.saveBtnText}>Save changes</Text>
           }
         </TouchableOpacity>
       </View>
@@ -200,16 +211,6 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: colors.line, position: 'relative',
   },
   photoImg: { width: '100%', height: '100%' },
-  photoBadge: {
-    position: 'absolute', top: 10, left: 10,
-    backgroundColor: 'rgba(10,10,10,0.72)',
-    paddingHorizontal: 9, paddingVertical: 5,
-    borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 5,
-  },
-  photoBadgeText: {
-    fontFamily: fonts.mono, fontSize: 9, letterSpacing: 1,
-    color: '#7DD68F',
-  },
   photoActions: {
     position: 'absolute', bottom: 10, right: 10,
     flexDirection: 'row', gap: 8,
@@ -237,6 +238,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 16, fontFamily: fonts.sans, fontSize: 15,
     color: colors.ink,
   },
+  deleteRow: { alignItems: 'center', marginTop: 26 },
+  deleteText: { fontFamily: fonts.sans700, fontSize: 14, color: colors.danger },
   footer: {
     padding: layout.px, paddingBottom: 34,
     backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: '#F0EEEB',
