@@ -89,7 +89,7 @@ const s = StyleSheet.create({
     textTransform: 'uppercase', color: colors.inkGhost, marginBottom: 6,
   },
   heading: {
-    fontFamily: fonts.serif, fontSize: 52, lineHeight: 50,
+    fontFamily: fonts.serif, fontSize: 52, lineHeight: 58,
     color: colors.ink, letterSpacing: -0.5,
   },
   tagline: {
