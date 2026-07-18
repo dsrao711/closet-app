@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.divyarao.closetapp",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow Divya's Closet to access your photos to add clothing items.",
-        "NSCameraUsageDescription": "Allow Divya's Closet to use your camera to photograph your clothing."
+        "NSCameraUsageDescription": "Allow Divya's Closet to use your camera to photograph your clothing.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,7 +28,8 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -42,6 +44,12 @@
           "cameraPermission": "Allow Divya's Closet to use your camera to photograph your clothing."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6367146c-168e-40f4-b5e9-620443b76cf7"
+      }
+    },
+    "owner": "divyarao0712"
   }
 }
